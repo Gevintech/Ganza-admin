@@ -1,0 +1,209 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Admin Dashboard</title>
+  <link rel="stylesheet" href="admin-styles.css" />
+</head>
+<body>
+  <div class="topbar">
+    <div class="brand">GANZA Admin</div>
+    <div class="top-actions">
+      <button id="signOutBtn" class="btn" style="background:#ff6b6b">Sign out</button>
+    </div>
+  </div>
+
+  <div class="wrapper">
+    <aside class="sidebar">
+      <h3>Manage Predictions</h3>
+      <div class="small-muted">Add new predictions to publish to the user app</div>
+      <hr style="border:none;height:8px">
+      <div class="small-muted">Admin Email: set in firebase-admin.js</div>
+    </aside>
+
+    <main class="main">
+      <div class="card">
+        <h3>Add / Edit Prediction</h3>
+        <div class="form-row">
+          <input id="f_date" class="input" placeholder="Date (e.g. 10-11-2025)" />
+          <input id="f_time" class="input" placeholder="Time (e.g. 22:00)" />
+        </div>
+        <div class="form-row">
+          <input id="f_league" class="input" placeholder="League" />
+          <input id="f_match" class="input" placeholder="Match (Team A v Team B)" />
+        </div>
+        <div class="form-row">
+          <input id="f_tip" class="input" placeholder="Tip (Home win)" />
+          <input id="f_odds" class="input" placeholder="Odds (e.g. 1.35)" />
+        </div>
+        <div class="form-row">
+          <select id="f_status" class="input">
+            <option value="pending">PENDING</option>
+            <option value="won">WON</option>
+          </select>
+          <select id="f_outline" class="input">
+            <option value="orange">Orange</option>
+            <option value="green">Green</option>
+            <option value="red">Red</option>
+          </select>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button id="addBtn" class="btn">Add Prediction</button>
+          <button id="updateBtn" class="btn" style="background:#06b6d4;display:none">Update</button>
+          <button id="cancelEdit" class="btn" style="background:#f3f4f6;color:#000;display:none">Cancel</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Existing Predictions</h3>
+        <table class="table" id="predTable">
+          <thead><tr><th>Date</th><th>League</th><th>Match</th><th>Tip</th><th>Odds</th><th>Time</th><th>Status</th><th>Outline</th><th>Actions</th></tr></thead>
+          <tbody id="predBody"></tbody>
+        </table>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    import { adminSignOut, addPrediction, updatePrediction, deletePrediction, onPredictionsSnapshot, auth } from './firebase-admin.js';
+
+    // elements
+    const addBtn = document.getElementById('addBtn');
+    const updateBtn = document.getElementById('updateBtn');
+    const cancelBtn = document.getElementById('cancelEdit');
+    const predBody = document.getElementById('predBody');
+    const signOutBtn = document.getElementById('signOutBtn');
+
+    let editingId = null;
+
+    function getFormData(){
+      return {
+        date: document.getElementById('f_date').value.trim(),
+        league: document.getElementById('f_league').value.trim(),
+        match: document.getElementById('f_match').value.trim(),
+        tip: document.getElementById('f_tip').value.trim(),
+        odds: document.getElementById('f_odds').value.trim(),
+        time: document.getElementById('f_time').value.trim(),
+        status: document.getElementById('f_status').value,
+        outline: document.getElementById('f_outline').value
+      };
+    }
+
+    function clearForm(){
+      ['f_date','f_league','f_match','f_tip','f_odds','f_time'].forEach(id => document.getElementById(id).value = '');
+      document.getElementById('f_status').value = 'pending';
+      document.getElementById('f_outline').value = 'orange';
+    }
+
+    addBtn.addEventListener('click', async () => {
+      const data = getFormData();
+      if (!data.date || !data.match) { alert('Date and Match required'); return; }
+      try {
+        await addPrediction(data);
+        clearForm();
+        alert('Added');
+      } catch (e) {
+        alert(e.message || 'Add error');
+      }
+    });
+
+    updateBtn.addEventListener('click', async () => {
+      if (!editingId) return;
+      const data = getFormData();
+      try {
+        await updatePrediction(editingId, data);
+        alert('Updated');
+        editingId = null;
+        updateBtn.style.display = 'none';
+        cancelBtn.style.display = 'none';
+        addBtn.style.display = 'inline-block';
+        clearForm();
+      } catch (e) {
+        alert(e.message || 'Update error');
+      }
+    });
+
+    cancelBtn.addEventListener('click', () => {
+      editingId = null;
+      updateBtn.style.display = 'none';
+      cancelBtn.style.display = 'none';
+      addBtn.style.display = 'inline-block';
+      clearForm();
+    });
+
+    function renderTable(list){
+      predBody.innerHTML = '';
+      list.forEach(p => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${p.date||''}</td>
+          <td>${p.league||''}</td>
+          <td>${p.match||''}</td>
+          <td>${p.tip||''}</td>
+          <td>${p.odds||''}</td>
+          <td>${p.time||''}</td>
+          <td>${p.status||''}</td>
+          <td>${p.outline||''}</td>
+          <td>
+            <button data-id="${p.id}" class="editBtn">Edit</button>
+            <button data-id="${p.id}" class="delBtn" style="background:#ff6b6b;color:#fff">Delete</button>
+          </td>
+        `;
+        predBody.appendChild(tr);
+      });
+
+      // wire buttons
+      Array.from(document.querySelectorAll('.editBtn')).forEach(b => {
+        b.addEventListener('click', () => {
+          const id = b.dataset.id;
+          const pred = window._predictions.find(x=>x.id===id);
+          if (!pred) return;
+          editingId = id;
+          document.getElementById('f_date').value = pred.date||'';
+          document.getElementById('f_league').value = pred.league||'';
+          document.getElementById('f_match').value = pred.match||'';
+          document.getElementById('f_tip').value = pred.tip||'';
+          document.getElementById('f_odds').value = pred.odds||'';
+          document.getElementById('f_time').value = pred.time||'';
+          document.getElementById('f_status').value = pred.status||'pending';
+          document.getElementById('f_outline').value = pred.outline||'orange';
+          updateBtn.style.display = 'inline-block';
+          cancelBtn.style.display = 'inline-block';
+          addBtn.style.display = 'none';
+        });
+      });
+
+      Array.from(document.querySelectorAll('.delBtn')).forEach(b => {
+        b.addEventListener('click', async () => {
+          if (!confirm('Delete?')) return;
+          const id = b.dataset.id;
+          try {
+            await deletePrediction(id);
+            alert('Deleted');
+          } catch (e) {
+            alert(e.message || 'Delete error');
+          }
+        });
+      });
+    }
+
+    // subscribe to predictions
+    window._predictions = [];
+    const unsub = onPredictionsSnapshot(list => {
+      window._predictions = list;
+      renderTable(list);
+    });
+
+    signOutBtn.addEventListener('click', async () => {
+      await adminSignOut();
+      window.location.href = 'index.html';
+    });
+
+    // ensure auth state: if not signed in redirect
+    import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-auth.js";
+    onAuthStateChanged(auth, user => {
+      if (!user) window.location.href = 'index.html';
+    });
+  </script>
+</body>
+</html>
