@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GANZA Bet - Admin Panel</title>
+  <style>
+    :root{
+      --accent-green: #00ff64;
+      --accent-orange: #ff9a1f;
+    }
+
+    *{box-sizing:border-box;font-family:Inter, "Helvetica Neue", Arial, sans-serif}
+
+    html,body{height:100%;margin:0;background:linear-gradient(180deg,#4a16d9,#1946ff);}
+
+    .statusbar-sim{height:34px;background:#ffd400;}
+
+    .login-body{display:flex;flex-direction:column;min-height:100vh;}
+    .login-main{padding:18px;display:flex;flex-direction:column;align-items:center;gap:18px;}
+    .logo-wrap{ margin-top:26px; display:flex; justify-content:center; width:100%; }
+    .dashed-oval{ width:180px; height:100px; border-radius:100px; border:6px dashed rgba(255,255,255,0.55); display:flex; align-items:center; justify-content:center; background: linear-gradient(90deg, rgba(255,255,255,0.02), rgba(255,255,255,0)); box-shadow: inset 0 -6px 18px rgba(0,0,0,0.25);}
+    .g-text{ transform: rotate(-8deg); font-weight:900; letter-spacing:6px; font-size:36px; }
+    .g-letter{ display:inline-block; padding:2px 4px; font-weight:900; color:#fff; background:transparent; -webkit-background-clip:text; background-clip:text; }
+    .g1{ background-image: linear-gradient(90deg,#23f7ff,#1bf5b8); -webkit-text-fill-color:transparent; }
+    .g2{ background-image: linear-gradient(90deg,#78ff85,#6fe0ff); -webkit-text-fill-color:transparent; }
+    .g3{ background-image: linear-gradient(90deg,#ffd36a,#ff7a7a); -webkit-text-fill-color:transparent; }
+    .g4{ background-image: linear-gradient(90deg,#a58cff,#6fe0ff); -webkit-text-fill-color:transparent; }
+    .g5{ background-image: linear-gradient(90deg,#ff8ae6,#9affc7); -webkit-text-fill-color:transparent; }
+
+    .auth-card{ width:92%; max-width:520px; background: linear-gradient(180deg, rgba(255,255,255,0.98), rgba(255,255,255,0.96)); border-radius:18px; padding:22px; box-shadow: 0 20px 50px rgba(0,0,0,0.25); margin-top:6px; color:#111;}
+    .label{ display:block; font-weight:800; margin-top:8px; margin-bottom:6px; font-size:18px; color:#000; }
+    .input-field{ width:100%; padding:14px 12px; border-radius:10px; border: none; outline:none; background: #f3f6fb; font-weight:700; font-size:15px; color:#111; box-shadow: inset 0 2px 0 rgba(0,0,0,0.03); margin-bottom:8px; }
+    .primary-btn{ width:100%; padding:14px; border-radius:12px; border:none; font-weight:800; font-size:18px; color:#fff; cursor:pointer; background: linear-gradient(90deg,#6e2bff,#007bff); box-shadow: 0 12px 28px rgba(0,0,0,0.2); }
+    .motiv-banner{ width:92%; max-width:520px; margin-top:18px; background:#fff3c7; color:#5b3700; font-weight:800; padding:12px 16px; border-radius:10px; text-align:center; box-shadow: 0 10px 20px rgba(0,0,0,0.12); }
+
+    .appbar{ display:flex; align-items:center; justify-content:space-between; padding:14px 18px; background: linear-gradient(90deg,#0b7fe6,#0b8ff6); box-shadow: 0 6px 18px rgba(0,0,0,0.15); color:#fff; }
+    .title{ display:flex; align-items:center; gap:14px; color:#fff; font-weight:700; font-size:20px; }
+    .signout-btn{ background: linear-gradient(90deg,#ff6b6b,#ff8c42); color:#fff; border:none; padding:8px 10px; border-radius:8px; font-weight:800; cursor:pointer; }
+
+    .container{ max-width:420px; margin:18px auto; padding:18px; color:#fff; }
+
+    .form-card{ background: linear-gradient(180deg,#234b92,#164076); border-radius:14px; padding:18px; margin-bottom:18px; box-shadow: inset 0 -20px 40px rgba(0,0,0,0.25); color:#fff; }
+    .form-title{ text-align:center; font-size:20px; font-weight:700; margin-bottom:12px; color:#dbe9ff; }
+    .form-group{ margin-bottom: 15px; }
+    .form-select{ width:100%; padding:14px 12px; border-radius:10px; border: none; outline:none; background: #f3f6fb; font-weight:700; font-size:15px; color:#111; box-shadow: inset 0 2px 0 rgba(0,0,0,0.03); }
+    .form-textarea{ width:100%; padding:14px 12px; border-radius:10px; border: none; outline:none; background: #f3f6fb; font-weight:700; font-size:15px; color:#111; box-shadow: inset 0 2px 0 rgba(0,0,0,0.03); min-height: 80px; resize: vertical; }
+
+    .predictions-list{ margin-top: 20px; }
+    .prediction-item{ background: linear-gradient(180deg,#16386e,#0f2a55); border-radius:12px; padding:14px; margin:12px 0; position:relative; overflow:hidden; display:flex; gap:12px; align-items:flex-start; }
+    .prediction-left{ flex:1; }
+    .prediction-league{ font-weight:700; color: #ffc24d; margin-bottom:6px; font-size:14px; }
+    .prediction-match{ font-weight:800; font-size:18px; color:#fff; margin-bottom:6px; }
+    .prediction-tip{ font-weight:700; color:rgba(255,255,255,0.9); }
+    .prediction-meta{ text-align:right; min-width:90px; display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+    .prediction-odds{ font-weight:800; font-size:18px; color:#f4d6e6; }
+    .prediction-time{ font-size:13px; color: #e3f1ff; display:flex; align-items:center; gap:6px; }
+    .prediction-status{ font-weight:800; margin-top:6px; display:flex; align-items:center; gap:6px; }
+    .delete-btn{ background: #ff4757; color: white; border: none; padding: 5px 10px; border-radius: 5px; cursor: pointer; font-weight: bold; margin-top: 5px; }
+
+    .hidden { display: none !important; }
+
+    @media (max-width:420px){
+      .g-text{ font-size:32px; letter-spacing:4px; }
+      .auth-card{ padding:18px; border-radius:16px; }
+      .form-card{ padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Admin Login Screen -->
+  <div id="loginScreen" class="login-body">
+    <div class="statusbar-sim"></div>
+
+    <main class="login-main">
+      <div class="logo-wrap">
+        <div class="dashed-oval">
+          <div class="g-text">
+            <span class="g-letter g1">G</span>
+            <span class="g-letter g2">A</span>
+            <span class="g-letter g3">N</span>
+            <span class="g-letter g4">Z</span>
+            <span class="g-letter g5">A</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="auth-card">
+        <label class="label">Admin Password</label>
+        <input id="password" class="input-field" type="password" placeholder="Enter admin password" />
+        <button id="loginBtn" class="primary-btn">Login as Admin</button>
+      </div>
+
+      <div class="motiv-banner">⚡ Admin Panel - Manage all predictions and sections 🚀</div>
+    </main>
+  </div>
+
+  <!-- Admin Panel Screen -->
+  <div id="adminPanel" class="hidden">
+    <header class="appbar">
+      <div class="title">Ganza Bet - Admin Panel</div>
+      <button id="signoutBtn" class="signout-btn">Sign out</button>
+    </header>
+
+    <main class="container">
+      <div class="form-card">
+        <div class="form-title">Add New Prediction</div>
+        
+        <div class="form-group">
+          <label class="label">Section</label>
+          <select id="section" class="form-select">
+            <option value="free">FREE</option>
+            <option value="starter">STARTER</option>
+            <option value="htft">HT/FT</option>
+            <option value="cs">CS</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Date</label>
+          <input id="date" class="input-field" type="text" placeholder="DD-MM-YYYY" />
+        </div>
+        
+        <div class="form-group">
+          <label class="label">League</label>
+          <input id="league" class="input-field" type="text" placeholder="Enter league" />
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Match</label>
+          <input id="match" class="input-field" type="text" placeholder="Enter match" />
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Tip</label>
+          <input id="tip" class="input-field" type="text" placeholder="Enter tip" />
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Odds</label>
+          <input id="odds" class="input-field" type="text" placeholder="Enter odds" />
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Time</label>
+          <input id="time" class="input-field" type="text" placeholder="Enter time" />
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Status</label>
+          <select id="status" class="form-select">
+            <option value="pending">Pending</option>
+            <option value="won">Won</option>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label class="label">Outline Color</label>
+          <select id="outline" class="form-select">
+            <option value="orange">Orange (Pending)</option>
+            <option value="green">Green (Won)</option>
+            <option value="red">Red (Lost)</option>
+          </select>
+        </div>
+        
+        <button id="addPredictionBtn" class="primary-btn">Add Prediction</button>
+      </div>
+
+      <div class="predictions-list" id="predictionsList">
+        <div style="color:#fff;text-align:center;padding:30px;">Loading existing predictions...</div>
+      </div>
+    </main>
+  </div>
+
+  <script type="module">
+    // Firebase configuration
+    const firebaseConfig = {
+      apiKey: "AIzaSyCwUFo1k8jqgE2FLSILhV1I9rf1M7x5S_4",
+      authDomain: "make-money-7aea2.firebaseapp.com",
+      databaseURL: "https://make-money-7aea2-default-rtdb.firebaseio.com",
+      projectId: "make-money-7aea2",
+      storageBucket: "make-money-7aea2.firebasestorage.app",
+      messagingSenderId: "584084915395",
+      appId: "1:584084915395:web:a5cb8ef3410a1312048e76",
+      measurementId: "G-ZQJ3M74ERQ"
+    };
+
+    // Import Firebase modules
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-app.js";
+    import { getDatabase, ref, set, get, child, onValue, remove } from "https://www.gstatic.com/firebasejs/9.22.2/firebase-database.js";
+
+    // Initialize Firebase
+    const app = initializeApp(firebaseConfig);
+    const database = getDatabase(app);
+
+    // Admin password
+    const ADMIN_PASSWORD = 'clever';
+
+    // Screen management
+    function showLoginScreen() {
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('adminPanel').classList.add('hidden');
+    }
+
+    function showAdminPanel() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('adminPanel').classList.remove('hidden');
+    }
+
+    // Render existing predictions
+    function renderPredictions(predictions) {
+      const container = document.getElementById('predictionsList');
+      
+      container.innerHTML = '';
+      
+      if (!predictions || Object.keys(predictions).length === 0) {
+        container.innerHTML = '<div style="color:#fff;text-align:center;padding:30px;">No predictions available.</div>';
+        return;
+      }
+
+      // Convert predictions object to array
+      const predictionsArray = Object.entries(predictions);
+      
+      // Create prediction items
+      predictionsArray.forEach(([id, p]) => {
+        const predictionItem = document.createElement('div');
+        predictionItem.className = 'prediction-item';
+        
+        const left = document.createElement('div');
+        left.className = 'prediction-left';
+        
+        const section = document.createElement('div');
+        section.className = 'prediction-league';
+        section.textContent = `Section: ${p.section || 'Unknown'}`;
+        
+        const date = document.createElement('div');
+        date.className = 'prediction-league';
+        date.textContent = `Date: ${p.date || 'Unknown'}`;
+        
+        const league = document.createElement('div');
+        league.className = 'prediction-league';
+        league.textContent = p.league || '';
+        
+        const match = document.createElement('div');
+        match.className = 'prediction-match';
+        match.textContent = p.match || '';
+        
+        const tip = document.createElement('div');
+        tip.className = 'prediction-tip';
+        tip.textContent = p.tip || '';
+        
+        left.appendChild(section);
+        left.appendChild(date);
+        left.appendChild(league);
+        left.appendChild(match);
+        left.appendChild(tip);
+
+        const meta = document.createElement('div');
+        meta.className = 'prediction-meta';
+        
+        const odds = document.createElement('div');
+        odds.className = 'prediction-odds';
+        odds.textContent = p.odds || '';
+        
+        const time = document.createElement('div');
+        time.className = 'prediction-time';
+        time.textContent = '⏱ ' + (p.time || '');
+        
+        const status = document.createElement('div');
+        status.className = 'prediction-status';
+        if (p.status === 'won') {
+          status.className += ' won';
+          status.textContent = 'WON ✔';
+        } else {
+          status.className += ' pending';
+          status.textContent = '⏳ PENDING';
+        }
+        
+        const deleteBtn = document.createElement('button');
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.addEventListener('click', () => {
+          if (confirm('Are you sure you want to delete this prediction?')) {
+            const predictionRef = ref(database, `predictions/${id}`);
+            remove(predictionRef);
+          }
+        });
+
+        meta.appendChild(odds);
+        meta.appendChild(time);
+        meta.appendChild(status);
+        meta.appendChild(deleteBtn);
+
+        predictionItem.appendChild(left);
+        predictionItem.appendChild(meta);
+        container.appendChild(predictionItem);
+      });
+    }
+
+    // Listen to predictions from Firebase Realtime Database
+    function listenToPredictions() {
+      const predictionsRef = ref(database, 'predictions');
+      
+      return onValue(predictionsRef, (snapshot) => {
+        const predictions = snapshot.val();
+        console.log('Predictions loaded:', predictions);
+        renderPredictions(predictions);
+      }, (error) => {
+        console.error('Error loading predictions:', error);
+        document.getElementById('predictionsList').innerHTML = '<div style="color:#fff;text-align:center;padding:30px;">Error loading predictions. Please refresh.</div>';
+      });
+    }
+
+    // Add new prediction
+    function addPrediction() {
+      const section = document.getElementById('section').value;
+      const date = document.getElementById('date').value.trim();
+      const league = document.getElementById('league').value.trim();
+      const match = document.getElementById('match').value.trim();
+      const tip = document.getElementById('tip').value.trim();
+      const odds = document.getElementById('odds').value.trim();
+      const time = document.getElementById('time').value.trim();
+      const status = document.getElementById('status').value;
+      const outline = document.getElementById('outline').value;
+      
+      if (!date || !league || !match || !tip || !odds || !time) {
+        alert('Please fill all fields');
+        return;
+      }
+      
+      // Generate unique ID for the prediction
+      const predictionId = Date.now().toString();
+      
+      // Create prediction object
+      const prediction = {
+        section,
+        date,
+        league,
+        match,
+        tip,
+        odds,
+        time,
+        status,
+        outline
+      };
+      
+      // Save to Firebase
+      const predictionRef = ref(database, `predictions/${predictionId}`);
+      set(predictionRef, prediction)
+        .then(() => {
+          alert('Prediction added successfully!');
+          // Clear form
+          document.getElementById('date').value = '';
+          document.getElementById('league').value = '';
+          document.getElementById('match').value = '';
+          document.getElementById('tip').value = '';
+          document.getElementById('odds').value = '';
+          document.getElementById('time').value = '';
+        })
+        .catch((error) => {
+          alert('Error adding prediction: ' + error.message);
+        });
+    }
+
+    // Event listeners
+    document.getElementById('loginBtn').addEventListener('click', () => {
+      const password = document.getElementById('password').value.trim();
+      
+      if (password === ADMIN_PASSWORD) {
+        showAdminPanel();
+        // Start listening to predictions
+        listenToPredictions();
+      } else {
+        alert('Invalid admin password');
+      }
+    });
+
+    document.getElementById('signoutBtn').addEventListener('click', () => {
+      showLoginScreen();
+    });
+
+    document.getElementById('addPredictionBtn').addEventListener('click', addPrediction);
+  </script>
+</body>
+</html>
